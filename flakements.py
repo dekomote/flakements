@@ -129,7 +129,7 @@ class Flakement(object):
             have different colors. If two different errors happen on same
             line, the line gets third color"""
         
-        if not self.code_errors == [] and not self.pep_errors == []:
+        if not self.code_errors == [] or not self.pep_errors == []:
 
             self.print_code_terminal(trim_output = trim_output)
             print "\n"
