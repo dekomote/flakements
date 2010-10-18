@@ -144,10 +144,10 @@ class Flakement(object):
             lineanchors = "code-line"):
         """HTML Output for the Flakements class"""
         if hl_errors:
-            hl_lines = [ex["line"] for ex in self.code_errors]
+            hl_lines = [ex["line"] for ex in self.code_errors + self.pep_errors]
         return highlight(self.code_string, PythonLexer(), 
                 HtmlFormatter(linenos = linenos, hl_lines = hl_lines, 
-                    lineanchors = lineanchors)), self.code_errors
+                    lineanchors = lineanchors)), self.code_errors, self.pep_errors
         
 def main():
     args = sys.argv[1:]
@@ -161,10 +161,10 @@ def main():
                                     codecs.open(
                                         os.path.join(dirpath, filename),
                                         "r","utf-8").read(), filename)
-                            flak.terminal_full_output()
+                            print flak.terminal_full_output()
             else:
                 flak = Flakement(codecs.open(arg, "r", "utf-8").read(), arg)
-                flak.terminal_full_output()
+                print flak.terminal_full_output()                
     else:
         flak = Flakement(sys.stdin.read(), '<stdin>')
         flak.terminal_full_output()
