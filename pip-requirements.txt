@@ -1,3 +1,4 @@
 pyflakes
 pygments
 termcolor
+pep8
