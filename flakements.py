@@ -17,6 +17,7 @@ from pygments.formatters import HtmlFormatter, TerminalFormatter
 from termcolor import colored
 import sys, os, codecs
 import uuid
+from optparse import OptionParser
 
 #we need to make stdout utf-8
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
@@ -127,43 +128,49 @@ class Flakement(object):
             or NO_TRIM- shows the whole code. PEP8 and pyflakes error lines
             have different colors. If two different errors happen on same
             line, the line gets third color"""
-
-        if not self.code_errors == []:
         
-            print (colored("File: %s"%(self.filename),
-                    "cyan"))
-            code_lines = self._enumerated_code_lines()
-            code_error_lines =  [ex["line"] for ex in self.code_errors]
-            pep_error_lines =  [ex["line"] for ex in self.pep_errors]
-            error_lines = code_error_lines + pep_error_lines 
-            
-            if trim_output == SMALL_TRIM:
-                low_line = min(error_lines)
-                high_line = max(error_lines)
-            else:
-                low_line = 0
-                high_line = len(code_lines)
+        if not self.code_errors == [] and not self.pep_errors == []:
 
-            for ln,cl in enumerate(code_lines): 
-                if ln >= low_line and ln <= high_line:
-                    if ln + 1 not in error_lines:
-                        if not trim_output == FULL_TRIM:
-                            sys.stdout.write(highlight(cl, PythonLexer(),
-                                TerminalFormatter()))
-                    else:
-                        if ln + 1 in code_error_lines and \
-                                ln + 1 in pep_error_lines:
-                            print colored(cl.rstrip("\n"), 
-                                    "white", "on_magenta")
-                        elif ln + 1 in code_error_lines:
-                            print colored(cl.rstrip("\n"), 
-                                    "white", "on_red")
-                        else:
-                            print colored(cl.rstrip("\n"), 
-                                    "white", "on_blue")
-
+            self.print_code_terminal(trim_output = trim_output)
             print "\n"
             self.print_errors_terminal()
+    
+
+    def print_code_terminal(self, trim_output):
+        """Prints the code with highlighted lines in terminal"""
+
+        print (colored("File: %s"%(self.filename),
+                "cyan"))
+        code_lines = self._enumerated_code_lines()
+        code_error_lines =  [ex["line"] for ex in self.code_errors]
+        pep_error_lines =  [ex["line"] for ex in self.pep_errors]
+        error_lines = code_error_lines + pep_error_lines 
+
+        if trim_output == SMALL_TRIM:
+            low_line = min(error_lines)
+            high_line = max(error_lines)
+        else:
+            low_line = 0
+            high_line = len(code_lines)
+
+        for ln,cl in enumerate(code_lines): 
+            if ln >= low_line and ln <= high_line:
+                if ln + 1 not in error_lines:
+                    if not trim_output == FULL_TRIM:
+                        sys.stdout.write(highlight(cl, PythonLexer(),
+                            TerminalFormatter()))
+                else:
+                    if ln + 1 in code_error_lines and \
+                            ln + 1 in pep_error_lines:
+                        print colored(cl.rstrip("\n"), 
+                                "white", "on_magenta")
+                    elif ln + 1 in code_error_lines:
+                        print colored(cl.rstrip("\n"), 
+                                "white", "on_red")
+                    else:
+                        print colored(cl.rstrip("\n"), 
+                                "white", "on_blue")
+
 
     def print_errors_terminal(self):
         """Prints the errors in terminal
@@ -199,9 +206,21 @@ class Flakement(object):
                             self.code_errors, self.pep_errors
         
 def main():
-    """Temporary main method"""
-
-    args = sys.argv[1:]
+    """Main method"""
+    
+    usage = "%prog [options] input ..."
+    
+    parser = OptionParser(usage)
+    parser.add_option('-t', '--trim', action = 'store', 
+            type = 'choice', dest = 'trim', choices = ["0", "1", "2"],
+            default = 0)
+    parser.add_option('-o', '--output', action = 'store', 
+            type = 'choice', dest = 'output', 
+            choices = ["T_FULL", "T_CODE",
+                "T_ERR", "HTML"],
+            default = "T_FULL")
+    
+    options, args = parser.parse_args()
     if args:
         for arg in args:
             if os.path.isdir(arg):
@@ -212,15 +231,19 @@ def main():
                                     codecs.open(
                                         os.path.join(dirpath, filename),
                                         "r","utf-8").read(), filename)
-                            print flak.terminal_full_output()
             else:
                 flak = Flakement(codecs.open(arg, "r", "utf-8").read(), arg)
-                print flak.terminal_full_output()                
     else:
         flak = Flakement(sys.stdin.read(), '<stdin>')
-        flak.terminal_full_output()
-
-    raise SystemExit(0)
+    
+    if options.output == 'T_FULL':
+        flak.terminal_full_output(trim_output = int(options.trim))
+    elif options.output == 'T_CODE': 
+        flak.print_code_terminal(trim_output = int(options.trim))
+    elif options.output == 'T_ERR': 
+        flak.print_errors_terminal()
+    elif options.output == 'HTML':
+        print flak.html_output()
 
 if __name__ == "__main__":
     main() 
