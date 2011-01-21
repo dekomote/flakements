@@ -1,0 +1,29 @@
+Flakements is cross-breed between pyflakes + pep8 and pygments. It's a linter tool that enhances pyflakes + pep8 with additional graphical element - shows the code and highlights the problematic lines. It can be also used as api - the function check_source is a wrapper around pyflakes, and when used with code text, returns a dict with line number, offset and error message. pep8_code uses pep8 script and parses its output to generate compatible dict with the previous function.
+
+**USAGE**:
+
+* flakements.py [options] [filename | dir | stdin]
+* API
+
+Options:
+
+* **-t/--trim - trim the terminal output**
+* * 2 - Full trim, only show lines with error
+* * 1 - Small trim, shows lines between the first and the last line with error
+* * 0 - No trim, shows full code
+
+* **-o/--output - output type**
+* * T_FULL - full terminal output
+* * T_CODE - only code output, no error list
+* * T_ERR - only error list output
+* * HTML - html output
+
+
+**INSTALLATION**:
+
+pip-requirements has the packages needed for the script to work:
+
+* pyflakes
+* pygments
+* termcolor
+* pep8
